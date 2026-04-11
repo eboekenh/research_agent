@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Report Agent</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="layout">
+        <!-- Sidebar: History -->
+        <aside class="sidebar" id="sidebar">
+            <h2>📚 History</h2>
+            <div id="history-list"><p class="muted">Loading...</p></div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <h1>📚 Research Report Agent</h1>
+
+            <!-- Step 1: Topic Input -->
+            <section id="step-input" class="card">
+                <h2>What do you want to research?</h2>
+                <div class="input-row">
+                    <input type="text" id="topic-input" placeholder="e.g. AI in healthcare, quantum computing trends..." autofocus>
+                    <button id="start-btn" onclick="startResearch()">Start</button>
+                </div>
+            </section>
+
+            <!-- Step 2: Clarifying Questions -->
+            <section id="step-questions" class="card hidden">
+                <h2>Clarifying Questions</h2>
+                <div id="questions-text" class="questions-box"></div>
+                <textarea id="answers-input" rows="4" placeholder="Type your answers here..."></textarea>
+                <button id="submit-btn" onclick="submitAnswers()">Submit & Research</button>
+            </section>
+
+            <!-- Step 3: Progress -->
+            <section id="step-progress" class="card hidden">
+                <h2>Generating Report</h2>
+                <div id="progress-steps">
+                    <div class="step-item" id="prog-research">
+                        <span class="step-icon">⏳</span>
+                        <span>Researching with Google Search...</span>
+                    </div>
+                    <div class="step-item" id="prog-write">
+                        <span class="step-icon">⏳</span>
+                        <span>Writing report...</span>
+                    </div>
+                    <div class="step-item" id="prog-save">
+                        <span class="step-icon">⏳</span>
+                        <span>Saving report...</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 4: Report -->
+            <section id="step-report" class="card hidden">
+                <div class="report-header">
+                    <h2>Report</h2>
+                    <div>
+                        <button id="download-btn" class="btn-secondary" onclick="downloadReport()">⬇ Download .md</button>
+                        <button class="btn-secondary" onclick="newResearch()">+ New Research</button>
+                    </div>
+                </div>
+                <div id="report-content" class="report-box"></div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        let currentSessionId = null;
+        let currentReportPath = null;
+
+        // ── API calls ──────────────────────────────────────────
+
+        async function startResearch() {
+            const topic = document.getElementById('topic-input').value.trim();
+            if (!topic) return;
+
+            setLoading('start-btn', true);
+
+            try {
+                const res = await fetch('/api/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic }),
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                currentSessionId = data.session_id;
+                document.getElementById('questions-text').innerHTML = marked.parse(data.questions);
+                showStep('step-questions');
+            } catch (err) {
+                alert('Error: ' + err.message);
+            } finally {
+                setLoading('start-btn', false);
+            }
+        }
+
+        async function submitAnswers() {
+            const answers = document.getElementById('answers-input').value.trim();
+            if (!answers) return;
+
+            showStep('step-progress');
+            resetProgress();
+
+            try {
+                const res = await fetch('/api/continue', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: currentSessionId,
+                        answers: answers,
+                    }),
+                });
+
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const event = JSON.parse(line.slice(6));
+                            handleProgressEvent(event);
+                        }
+                    }
+                }
+            } catch (err) {
+                alert('Error during research: ' + err.message);
+                showStep('step-input');
+            }
+        }
+
+        function handleProgressEvent(event) {
+            switch (event.step) {
+                case 'research':
+                    markStep('prog-research', 'active');
+                    break;
+                case 'research_done':
+                    markStep('prog-research', 'done');
+                    markStep('prog-write', 'active');
+                    break;
+                case 'write_report':
+                    markStep('prog-write', 'active');
+                    break;
+                case 'report_done':
+                    markStep('prog-write', 'done');
+                    markStep('prog-save', 'active');
+                    break;
+                case 'saved':
+                    markStep('prog-save', 'done');
+                    break;
+                case 'done':
+                    markStep('prog-research', 'done');
+                    markStep('prog-write', 'done');
+                    markStep('prog-save', 'done');
+                    currentReportPath = event.report_path;
+                    document.getElementById('report-content').innerHTML = marked.parse(event.report);
+                    setTimeout(() => showStep('step-report'), 500);
+                    loadHistory();
+                    break;
+                case 'error':
+                    alert('Error: ' + event.message);
+                    showStep('step-input');
+                    break;
+            }
+        }
+
+        function downloadReport() {
+            if (!currentReportPath) return;
+            const filename = currentReportPath.split(/[/\\]/).pop();
+            window.open('/api/reports/' + encodeURIComponent(filename), '_blank');
+        }
+
+        function newResearch() {
+            document.getElementById('topic-input').value = '';
+            document.getElementById('answers-input').value = '';
+            currentSessionId = null;
+            currentReportPath = null;
+            showStep('step-input');
+            document.getElementById('topic-input').focus();
+        }
+
+        // ── History ────────────────────────────────────────────
+
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/history');
+                const items = await res.json();
+                const list = document.getElementById('history-list');
+
+                if (items.length === 0) {
+                    list.innerHTML = '<p class="muted">No research yet</p>';
+                    return;
+                }
+
+                list.innerHTML = items.map(item => `
+                    <div class="history-item" onclick="loadResearch('${item.id}')">
+                        <div class="history-topic">${escapeHtml(item.topic)}</div>
+                        <div class="history-date">${new Date(item.created_at).toLocaleDateString()}</div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Failed to load history:', err);
+            }
+        }
+
+        async function loadResearch(id) {
+            try {
+                const res = await fetch('/api/history/' + id);
+                const data = await res.json();
+
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                currentReportPath = data.report_path;
+                document.getElementById('report-content').innerHTML = marked.parse(data.report);
+                showStep('step-report');
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        // ── UI helpers ─────────────────────────────────────────
+
+        function showStep(stepId) {
+            document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+            document.getElementById(stepId).classList.remove('hidden');
+        }
+
+        function setLoading(btnId, loading) {
+            const btn = document.getElementById(btnId);
+            btn.disabled = loading;
+            btn.textContent = loading ? 'Loading...' : 'Start';
+        }
+
+        function markStep(id, state) {
+            const el = document.getElementById(id);
+            el.className = 'step-item ' + state;
+            const icon = el.querySelector('.step-icon');
+            if (state === 'active') icon.textContent = '🔄';
+            else if (state === 'done') icon.textContent = '✅';
+        }
+
+        function resetProgress() {
+            ['prog-research', 'prog-write', 'prog-save'].forEach(id => {
+                const el = document.getElementById(id);
+                el.className = 'step-item';
+                el.querySelector('.step-icon').textContent = '⏳';
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Allow Enter key to start research
+        document.getElementById('topic-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') startResearch();
+        });
+
+        // Load history on page load
+        loadHistory();
+    </script>
+</body>
+</html>

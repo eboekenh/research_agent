@@ -1,0 +1,9 @@
+langchain
+langchain-ollama
+langchain-community
+duckduckgo-search
+langgraph
+flask
+sqlalchemy
+python-dotenv
+requests
