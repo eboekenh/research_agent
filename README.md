@@ -151,6 +151,3 @@ OLLAMA_MODEL=llama3.1:8b python research_agent.py
 
 ---
 
-## License
-
-This project is for educational and portfolio purposes.
