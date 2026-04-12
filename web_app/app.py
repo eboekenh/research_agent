@@ -104,9 +104,11 @@ def continue_research():
             def on_progress(step, message):
                 progress_queue.put({"step": step, "message": message})
 
-            # We need to rebuild with progress callback, but reuse the same checkpointer
-            # Instead, we'll use the existing graph and push progress from a wrapper
-            result = graph_instance.invoke(Command(resume=answers), config)
+            # Rebuild graph with progress callback, reusing the same checkpointer
+            graph_with_progress = build_graph(on_progress=on_progress)
+            # Copy over the checkpoint state from the original graph
+            graph_with_progress.checkpointer = graph_instance.checkpointer
+            result = graph_with_progress.invoke(Command(resume=answers), config)
 
             # Save to DB
             research_id = save_research(
@@ -136,12 +138,12 @@ def continue_research():
 
         while True:
             try:
-                event = progress_queue.get(timeout=120)
+                event = progress_queue.get(timeout=600)
                 yield f"data: {json.dumps(event)}\n\n"
                 if event.get("step") in ("done", "error"):
                     break
             except Empty:
-                yield f"data: {json.dumps({'step': 'error', 'message': 'Timeout waiting for results'})}\n\n"
+                yield f"data: {json.dumps({'step': 'error', 'message': 'Timeout waiting for results (10 min)'})}\n\n"
                 break
 
     return Response(event_stream(), mimetype="text/event-stream")
@@ -176,4 +178,4 @@ def download_report(filename):
 if __name__ == "__main__":
     init_db()
     print("🚀 Research Agent Web App running at http://localhost:5000")
-    app.run(debug=True, host="0.0.0.0", port=5000, threaded=True)
+    app.run(debug=True, host="0.0.0.0", port=5000, threaded=True, use_reloader=False)
