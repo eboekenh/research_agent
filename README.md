@@ -65,7 +65,7 @@ The agent uses a **human-in-the-loop** pattern: instead of guessing what you nee
 ```bash
 # Clone the repository
 git clone https://github.com/eboekenh/research_agent.git
-cd research_agent
+
 
 # Install dependencies
 pip install -r requirements.txt
