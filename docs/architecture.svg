@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 640" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#01696F"/>
+    </marker>
+    <marker id="arrow-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7A7974"/>
+    </marker>
+    <filter id="soft" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- background -->
+  <rect width="1120" height="640" fill="#F7F6F2"/>
+
+  <!-- title -->
+  <text x="40" y="42" font-size="20" font-weight="700" fill="#28251D">AI Research Agent — System Architecture</text>
+  <text x="40" y="64" font-size="13" fill="#7A7974">Human-in-the-loop agentic workflow built on LangGraph with local LLM inference</text>
+
+  <!-- Lane: Client -->
+  <rect x="40" y="100" width="220" height="460" rx="10" fill="#FBFBF9" stroke="#D4D1CA"/>
+  <text x="60" y="124" font-size="11" font-weight="700" letter-spacing="1" fill="#01696F">CLIENT</text>
+
+  <!-- CLI -->
+  <rect x="62" y="150" width="176" height="60" rx="8" fill="#FFFFFF" stroke="#D4D1CA" filter="url(#soft)"/>
+  <text x="150" y="178" text-anchor="middle" font-size="13" font-weight="600" fill="#28251D">CLI</text>
+  <text x="150" y="196" text-anchor="middle" font-size="11" fill="#7A7974">research_agent.py</text>
+
+  <!-- Web App -->
+  <rect x="62" y="230" width="176" height="74" rx="8" fill="#FFFFFF" stroke="#D4D1CA" filter="url(#soft)"/>
+  <text x="150" y="254" text-anchor="middle" font-size="13" font-weight="600" fill="#28251D">Flask Web App</text>
+  <text x="150" y="272" text-anchor="middle" font-size="11" fill="#7A7974">REST + SSE streaming</text>
+  <text x="150" y="288" text-anchor="middle" font-size="11" fill="#7A7974">Markdown UI</text>
+
+  <!-- Lane: Agent Core -->
+  <rect x="300" y="100" width="500" height="460" rx="10" fill="#FBFBF9" stroke="#D4D1CA"/>
+  <text x="320" y="124" font-size="11" font-weight="700" letter-spacing="1" fill="#01696F">AGENT CORE  ·  LangGraph StateGraph</text>
+
+  <!-- Node: clarify -->
+  <rect x="330" y="150" width="200" height="72" rx="8" fill="#FFFFFF" stroke="#01696F" stroke-width="1.5" filter="url(#soft)"/>
+  <text x="430" y="174" text-anchor="middle" font-size="13" font-weight="600" fill="#01696F">1 · clarify</text>
+  <text x="430" y="192" text-anchor="middle" font-size="11" fill="#28251D">Generate scoping questions</text>
+  <text x="430" y="208" text-anchor="middle" font-size="11" fill="#28251D">interrupt() pauses for user</text>
+
+  <!-- Node: research -->
+  <rect x="570" y="150" width="200" height="72" rx="8" fill="#FFFFFF" stroke="#01696F" stroke-width="1.5" filter="url(#soft)"/>
+  <text x="670" y="174" text-anchor="middle" font-size="13" font-weight="600" fill="#01696F">2 · research</text>
+  <text x="670" y="192" text-anchor="middle" font-size="11" fill="#28251D">Tool use: web search</text>
+  <text x="670" y="208" text-anchor="middle" font-size="11" fill="#28251D">Collect 10+ sources</text>
+
+  <!-- Node: write (4, right) -->
+  <rect x="330" y="260" width="200" height="72" rx="8" fill="#FFFFFF" stroke="#01696F" stroke-width="1.5" filter="url(#soft)"/>
+  <text x="430" y="284" text-anchor="middle" font-size="13" font-weight="600" fill="#01696F">4 · write</text>
+  <text x="430" y="302" text-anchor="middle" font-size="11" fill="#28251D">Structured Markdown</text>
+  <text x="430" y="318" text-anchor="middle" font-size="11" fill="#28251D">with inline citations</text>
+
+  <!-- Node: synthesize (3, left under research) -->
+  <rect x="570" y="260" width="200" height="72" rx="8" fill="#FFFFFF" stroke="#01696F" stroke-width="1.5" filter="url(#soft)"/>
+  <text x="670" y="284" text-anchor="middle" font-size="13" font-weight="600" fill="#01696F">3 · synthesize</text>
+  <text x="670" y="302" text-anchor="middle" font-size="11" fill="#28251D">LLM reasoning over</text>
+  <text x="670" y="318" text-anchor="middle" font-size="11" fill="#28251D">retrieved sources</text>
+
+  <!-- Node: persist -->
+  <rect x="450" y="372" width="200" height="72" rx="8" fill="#FFFFFF" stroke="#01696F" stroke-width="1.5" filter="url(#soft)"/>
+  <text x="550" y="396" text-anchor="middle" font-size="13" font-weight="600" fill="#01696F">5 · persist</text>
+  <text x="550" y="414" text-anchor="middle" font-size="11" fill="#28251D">Save report + archive</text>
+  <text x="550" y="430" text-anchor="middle" font-size="11" fill="#28251D">full session state</text>
+
+  <!-- StateGraph flow arrows: 1 clarify → 2 research → 3 synthesize → 4 write → 5 persist -->
+  <line x1="530" y1="186" x2="568" y2="186" stroke="#01696F" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- research (top right) → synthesize (middle right) -->
+  <line x1="670" y1="224" x2="670" y2="252" stroke="#01696F" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- synthesize (right) → write (left) -->
+  <line x1="568" y1="296" x2="532" y2="296" stroke="#01696F" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- write (middle left) → persist (bottom center) -->
+  <line x1="460" y1="334" x2="520" y2="370" stroke="#01696F" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- State / memory pill -->
+  <rect x="330" y="478" width="440" height="60" rx="8" fill="#EEF6F6" stroke="#01696F" stroke-dasharray="4 3"/>
+  <text x="550" y="502" text-anchor="middle" font-size="12" font-weight="600" fill="#01696F">Shared Graph State  (topic · clarifications · sources · draft · citations)</text>
+  <text x="550" y="522" text-anchor="middle" font-size="11" fill="#28251D">typed dict · checkpointed per session · enables resume + observability</text>
+
+  <!-- Lane: External / Infra -->
+  <rect x="840" y="100" width="240" height="460" rx="10" fill="#FBFBF9" stroke="#D4D1CA"/>
+  <text x="860" y="124" font-size="11" font-weight="700" letter-spacing="1" fill="#01696F">MODELS · TOOLS · STORAGE</text>
+
+  <!-- Ollama -->
+  <rect x="862" y="150" width="196" height="74" rx="8" fill="#FFFFFF" stroke="#D4D1CA" filter="url(#soft)"/>
+  <text x="960" y="174" text-anchor="middle" font-size="13" font-weight="600" fill="#28251D">Ollama</text>
+  <text x="960" y="192" text-anchor="middle" font-size="11" fill="#7A7974">local LLM inference</text>
+  <text x="960" y="208" text-anchor="middle" font-size="11" fill="#7A7974">llama3.2 · no API keys</text>
+
+  <!-- DuckDuckGo -->
+  <rect x="862" y="244" width="196" height="74" rx="8" fill="#FFFFFF" stroke="#D4D1CA" filter="url(#soft)"/>
+  <text x="960" y="268" text-anchor="middle" font-size="13" font-weight="600" fill="#28251D">DuckDuckGo Search</text>
+  <text x="960" y="286" text-anchor="middle" font-size="11" fill="#7A7974">tool · live web retrieval</text>
+  <text x="960" y="302" text-anchor="middle" font-size="11" fill="#7A7974">10+ cited sources</text>
+
+  <!-- SQLite -->
+  <rect x="862" y="338" width="196" height="74" rx="8" fill="#FFFFFF" stroke="#D4D1CA" filter="url(#soft)"/>
+  <text x="960" y="362" text-anchor="middle" font-size="13" font-weight="600" fill="#28251D">SQLite + SQLAlchemy</text>
+  <text x="960" y="380" text-anchor="middle" font-size="11" fill="#7A7974">session archive</text>
+  <text x="960" y="396" text-anchor="middle" font-size="11" fill="#7A7974">topic · sources · report</text>
+
+  <!-- Markdown reports -->
+  <rect x="862" y="432" width="196" height="74" rx="8" fill="#FFFFFF" stroke="#D4D1CA" filter="url(#soft)"/>
+  <text x="960" y="456" text-anchor="middle" font-size="13" font-weight="600" fill="#28251D">reports/*.md</text>
+  <text x="960" y="474" text-anchor="middle" font-size="11" fill="#7A7974">structured output</text>
+  <text x="960" y="490" text-anchor="middle" font-size="11" fill="#7A7974">versioned on disk</text>
+
+  <!-- Cross-lane arrows -->
+  <!-- Client → clarify -->
+  <line x1="240" y1="186" x2="328" y2="186" stroke="#7A7974" stroke-width="1.5" marker-end="url(#arrow-dim)"/>
+  <!-- research ↔ DuckDuckGo -->
+  <line x1="770" y1="186" x2="860" y2="278" stroke="#7A7974" stroke-width="1.5" marker-end="url(#arrow-dim)"/>
+  <!-- synthesize → Ollama (LLM call) -->
+  <line x1="770" y1="284" x2="860" y2="196" stroke="#7A7974" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow-dim)"/>
+  <!-- write → reports -->
+  <line x1="430" y1="334" x2="860" y2="460" stroke="#7A7974" stroke-width="1.5" marker-end="url(#arrow-dim)"/>
+  <!-- persist → SQLite -->
+  <line x1="650" y1="408" x2="860" y2="376" stroke="#7A7974" stroke-width="1.5" marker-end="url(#arrow-dim)"/>
+  <!-- client ← persist (history) -->
+  <path d="M 550 444 Q 550 600 150 600 L 150 312" fill="none" stroke="#7A7974" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow-dim)"/>
+
+  <!-- Legend -->
+  <g transform="translate(40, 610)">
+    <rect x="0" y="0" width="14" height="3" fill="#01696F"/>
+    <text x="22" y="5" font-size="11" fill="#28251D">StateGraph transition</text>
+    <rect x="180" y="0" width="14" height="3" fill="#7A7974"/>
+    <text x="202" y="5" font-size="11" fill="#28251D">External call</text>
+    <line x1="300" y1="2" x2="314" y2="2" stroke="#7A7974" stroke-width="2" stroke-dasharray="4 3"/>
+    <text x="322" y="5" font-size="11" fill="#28251D">Async / persistent</text>
+    <rect x="460" y="-3" width="10" height="10" rx="2" fill="#FFFFFF" stroke="#01696F" stroke-width="1.5"/>
+    <text x="478" y="5" font-size="11" fill="#28251D">Agent node (LangGraph)</text>
+  </g>
+</svg>
